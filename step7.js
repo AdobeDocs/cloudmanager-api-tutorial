@@ -89,13 +89,15 @@ app.use(bodyParser.json({
     verify: (req, res, buf, encoding) => {
       const signature = req.get("x-adobe-signature");
       if (signature) {
-        const hmac = crypto.createHmac('sha256', process.env.CLIENT_SECRET)
+        const hmac = crypto.createHmac('sha256', process.env.CLIENT_SECRET);
         hmac.update(buf);
         const digest = hmac.digest('base64');
   
         if (signature !== digest) {
-          throw new Error('x-adobe-signature HMAC check failed')
+          throw new Error('x-adobe-signature HMAC check failed');
         }
+      } else if (!process.env.DEBUG && req.method === "POST") {
+        throw new Error('x-adobe-signature required');
       }
     }
   }));
