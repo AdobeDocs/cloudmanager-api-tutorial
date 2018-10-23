@@ -4,21 +4,22 @@ This repository contains the completed tutorial for the Adobe Cloud Manager API.
 
 ## Goal
 
-The tutorial walks through the steps to build a basic integration with the Cloud Manager API. This integration receives events, via a webhook, from Cloud Manager and makes API calls back to Cloud Manager to receive more information. The specific use case in the tutorial is to send a message to a Slack channel when the CI/CD pipeline starts; the concepts used in the tutorial, however, are applicable to a wide variety of use cases. Similarly, although the tutorial is written in JavaScript, the concepts are applicable to any programming language.
+The tutorial walks through the steps to build a basic integration with the Cloud Manager API. This integration receives events, via a webhook, from Cloud Manager and makes API calls back to Cloud Manager to receive more information. The specific use case in the tutorial is to send a message to either a Microsoft Teams channel or a Slack channel when the CI/CD pipeline starts; the concepts used in the tutorial, however, are applicable to a wide variety of use cases. Similarly, although the tutorial is written in JavaScript, the concepts are applicable to any programming language.
 
 ## Steps
 
 The tutorial is organized into a series of steps, the completion of which is it its own file.
 
-| Step | Description                     | File       |
-|------|---------------------------------|------------|
-| 1    | Basic Webhook Setup             | `step1.js` |
-| 2    | Webhook Signature Validation    | `step2.js` |
-| 3    | Looking for Specific Event Type | `step3.js` |
-| 4    | Getting an Access Token         | `step4.js` |
-| 5    | Getting Execution Data          | `step5.js` |
-| 6    | Getting Program Data            | `step6.js` |
-| 7    | Notifying Slack                 | `step7.js` |
+| Step | Description                     | File             |
+|------|---------------------------------|------------------|
+| 1    | Basic Webhook Setup             | `step1.js`       |
+| 2    | Webhook Signature Validation    | `step2.js`       |
+| 3    | Looking for Specific Event Type | `step3.js`       |
+| 4    | Getting an Access Token         | `step4.js`       |
+| 5    | Getting Execution Data          | `step5.js`       |
+| 6    | Getting Program Data            | `step6.js`       |
+| 7    | Notifying Slack                 | `step7-slack.js` |
+| 7    | Notifying Microsoft Teams       | `step7-teams.js` |
 
 ## Running
 
