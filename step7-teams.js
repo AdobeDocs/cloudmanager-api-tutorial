@@ -91,7 +91,7 @@ async function notifyTeams(message) {
 
 app.use(bodyParser.json({
     verify: (req, res, buf, encoding) => {
-      const signature = req.get("x-adobe-signature");
+      const signature = req.header("x-adobe-signature");
       if (signature) {
         const hmac = crypto.createHmac('sha256', process.env.CLIENT_SECRET);
         hmac.update(buf);
