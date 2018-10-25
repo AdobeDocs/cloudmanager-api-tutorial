@@ -75,7 +75,7 @@ async function getExecution(executionUrl) {
     return execution;
 }
 
-async function notifySlack(message) {
+function notifySlack(message) {
     fetch(process.env.SLACK_WEBHOOK, {
         "method": "POST",
         "headers": { 'Content-Type': 'application/json' },

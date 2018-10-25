@@ -75,7 +75,7 @@ async function getExecution(executionUrl) {
     return execution;
 }
 
-async function notifyTeams(message) {
+function notifyTeams(message) {
     fetch(process.env.TEAMS_WEBHOOK, {
         "method": "POST",
         "headers": { 'Content-Type': 'application/json' },
