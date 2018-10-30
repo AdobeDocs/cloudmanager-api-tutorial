@@ -64,7 +64,10 @@ async function getExecution (executionUrl) {
 
   const execution = await makeApiCall(accessToken, executionUrl, 'GET')
 
-  const program = await makeApiCall(accessToken, new URL(getLink(execution, 'http://ns.adobe.com/adobecloud/rel/program'), executionUrl))
+  const REL_PROGRAM = 'http://ns.adobe.com/adobecloud/rel/program'
+  const programLink = getLink(execution, REL_PROGRAM)
+  const programUrl = new URL(programLink, executionUrl)
+  const program = await makeApiCall(accessToken, programUrl)
 
   execution.program = program
 
