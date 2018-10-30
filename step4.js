@@ -10,40 +10,36 @@ require('dotenv').config();
 
 const app = express();
 
-const EXPIRATION = 24*60*60; // 24 hours
-
-const imsEndpoint = process.env.IMS_ENDPOINT ? process.env.IMS_ENDPOINT : "ims-na1.adobelogin.com";
-const cloudmanagerClaim = process.env.CLOUDMANAGER_CLAIM ? process.env.CLOUDMANAGER_CLAIM : "https://ims-na1.adobelogin.com/s/ent_cloudmgr_sdk";
-
 async function getAccessToken() {
-    const header = {
-        "alg" : "RS256",
-        "typ" : "JWT"
-    };
+  const EXPIRATION = 60*60; // 1 hour
 
-    const payload = {
-        "exp" : Math.round(new Date().getTime() / 1000) + EXPIRATION,
-        "iss" : process.env.ORGANIZATION_ID,
-        "sub" : process.env.TECHNICAL_ACCOUNT_ID,
-        "aud" : `https://${imsEndpoint}/c/${process.env.API_KEY}`
-    };
+  const header = {
+    "alg" : "RS256",
+    "typ" : "JWT"
+  };
 
-    payload[cloudmanagerClaim] = true;
+  const payload = {
+    "exp" : Math.round(new Date().getTime() / 1000) + EXPIRATION,
+    "iss" : process.env.ORGANIZATION_ID,
+    "sub" : process.env.TECHNICAL_ACCOUNT_ID,
+    "aud" : `https://ims-na1.adobelogin.com/c/${process.env.API_KEY}`,
+    "https://ims-na1.adobelogin.com/s/ent_cloudmgr_sdk" : true
+  };
 
-    const jwtToken = jsrsasign.jws.JWS.sign("RS256", JSON.stringify(header), JSON.stringify(payload), process.env.PRIVATE_KEY);
+  const jwtToken = jsrsasign.jws.JWS.sign("RS256", JSON.stringify(header), JSON.stringify(payload), process.env.PRIVATE_KEY);
 
-    const response = await fetch(`https://${imsEndpoint}/ims/exchange/jwt/`, {
-        method: "POST",
-        body: new URLSearchParams({
-            client_id: process.env.API_KEY,
-            client_secret: process.env.CLIENT_SECRET,
-            jwt_token: jwtToken
-        })
-    });
+  const response = await fetch("https://ims-na1.adobelogin.com/ims/exchange/jwt", {
+    method: "POST",
+    body: new URLSearchParams({
+      client_id: process.env.API_KEY,
+      client_secret: process.env.CLIENT_SECRET,
+      jwt_token: jwtToken
+    })
+  });
 
-    const json = await response.json();
-    
-    return json["access_token"];
+  const json = await response.json();
+
+  return json["access_token"];
 }
 
 app.use(bodyParser.json({
@@ -72,13 +68,17 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-app.post('/webhook', (req, res) => { 
-  console.log(req.body);
+app.post('/webhook', (req, res) => {
   res.writeHead(200, { 'Content-Type': 'application/text' });
   res.end("pong");
 
-  if (req.body.event["@type"] === "https://ns.adobe.com/experience/cloudmanager/event/started" &&
-       req.body.event["xdmEventEnvelope:objectType"] === "https://ns.adobe.com/experience/cloudmanager/pipeline-execution") {
+  const STARTED = "https://ns.adobe.com/experience/cloudmanager/event/started";
+  const EXECUTION = "https://ns.adobe.com/experience/cloudmanager/pipeline-execution";
+
+  const event = req.body.event;
+
+  if (STARTED === event["@type"] &&
+       EXECUTION === event["xdmEventEnvelope:objectType"]) {
     console.log("received execution start event");
     getAccessToken().then(accessToken => {
       console.log(accessToken);

@@ -36,8 +36,13 @@ app.post('/webhook', (req, res) => {
   res.writeHead(200, { 'Content-Type': 'application/text' });
   res.end("pong");
 
-  if (req.body.event["@type"] === "https://ns.adobe.com/experience/cloudmanager/event/started" &&
-       req.body.event["xdmEventEnvelope:objectType"] === "https://ns.adobe.com/experience/cloudmanager/pipeline-execution") {
+  const STARTED = "https://ns.adobe.com/experience/cloudmanager/event/started";
+  const EXECUTION = "https://ns.adobe.com/experience/cloudmanager/pipeline-execution";
+
+  const event = req.body.event;
+
+  if (event["@type"] === STARTED &&
+       event["xdmEventEnvelope:objectType"] === EXECUTION) {
     console.log("received execution start event");
   }
 });
