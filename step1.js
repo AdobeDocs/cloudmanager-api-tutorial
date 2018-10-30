@@ -1,27 +1,27 @@
-const express    = require('express'),
-      bodyParser = require('body-parser');
+const express = require('express')
+const bodyParser = require('body-parser')
 
-require('dotenv').config();
+require('dotenv').config()
 
-const app = express();
+const app = express()
 
-app.use(bodyParser.json());
+app.use(bodyParser.json())
 
 app.get('/webhook', (req, res) => {
-  if (req.query["challenge"]){
-    res.send(req.query['challenge']);
+  if (req.query['challenge']) {
+    res.send(req.query['challenge'])
   } else {
-    console.log("No challenge");
-    res.status(400);
+    console.log('No challenge')
+    res.status(400)
   }
-});
+})
 
 app.post('/webhook', (req, res) => {
-  console.log(req.body);
-  res.writeHead(200, { 'Content-Type': 'application/text' });
-  res.end("pong");
-});
+  console.log(req.body)
+  res.writeHead(200, { 'Content-Type': 'application/text' })
+  res.end('pong')
+})
 
 var listener = app.listen(process.env.PORT, () => {
-  console.log('Your app is listening on port ' + listener.address().port);
-});
+  console.log(`Your app is listening on port ${listener.address().port}`)
+})
