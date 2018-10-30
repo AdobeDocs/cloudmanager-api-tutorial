@@ -132,6 +132,6 @@ app.post('/webhook', (req, res) => {
   }
 })
 
-var listener = app.listen(process.env.PORT, () => {
+const listener = app.listen(process.env.PORT, () => {
   console.log(`Your app is listening on port ${listener.address().port}`)
 })
