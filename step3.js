@@ -36,7 +36,8 @@ app.post('/webhook', (req, res) => {
   res.writeHead(200, { 'Content-Type': 'application/text' });
   res.end("pong");
 
-  if (req.header("x-adobe-event-code") === "pipeline_execution_start") {
+  if (req.body.event["@type"] === "https://ns.adobe.com/experience/cloudmanager/event/started" &&
+       req.body.event["xdmEventEnvelope:objectType"] === "https://ns.adobe.com/experience/cloudmanager/pipeline-execution") {
     console.log("received execution start event");
   }
 });
