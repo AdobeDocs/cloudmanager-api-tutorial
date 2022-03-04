@@ -1,45 +1,26 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const crypto = require('crypto')
-const jsrsasign = require('jsrsasign')
+const auth = require('@adobe/jwt-auth')
+const fs = require('fs')
 const fetch = require('node-fetch')
-
-const { URLSearchParams, URL } = require('url')
+const { URL } = require('url')
 
 require('dotenv').config()
 
 const app = express()
 
 async function getAccessToken () {
-  const EXPIRATION = 60 * 60 // 1 hour
-
-  const header = {
-    'alg': 'RS256',
-    'typ': 'JWT'
+  const config = {
+    clientId: process.env.CLIENT_ID,
+    technicalAccountId: process.env.TECHNICAL_ACCOUNT_ID,
+    orgId: process.env.ORGANIZATION_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    metaScopes: [ 'ent_cloudmgr_sdk' ]
   }
+  config.privateKey = fs.readFileSync('.data/private.key')
 
-  const payload = {
-    'exp': Math.round(new Date().getTime() / 1000) + EXPIRATION,
-    'iss': process.env.ORGANIZATION_ID,
-    'sub': process.env.TECHNICAL_ACCOUNT_ID,
-    'aud': `https://ims-na1.adobelogin.com/c/${process.env.API_KEY}`,
-    'https://ims-na1.adobelogin.com/s/ent_cloudmgr_sdk': true
-  }
-
-  const jwtToken = jsrsasign.jws.JWS.sign('RS256', JSON.stringify(header), JSON.stringify(payload), process.env.PRIVATE_KEY)
-
-  const response = await fetch('https://ims-na1.adobelogin.com/ims/exchange/jwt', {
-    method: 'POST',
-    body: new URLSearchParams({
-      client_id: process.env.API_KEY,
-      client_secret: process.env.CLIENT_SECRET,
-      jwt_token: jwtToken
-    })
-  })
-
-  const json = await response.json()
-
-  return json['access_token']
+  const { access_token } = await auth(config)
+  return access_token  
 }
 
 async function makeApiCall (accessToken, url, method) {
@@ -47,7 +28,7 @@ async function makeApiCall (accessToken, url, method) {
     'method': method,
     'headers': {
       'x-gw-ims-org-id': process.env.ORGANIZATION_ID,
-      'x-api-key': process.env.API_KEY,
+      'x-api-key': process.env.CLIENT_ID,
       'Authorization': `Bearer ${accessToken}`
     }
   })
@@ -74,35 +55,28 @@ async function getExecution (executionUrl) {
   return execution
 }
 
-app.use(bodyParser.json({
-  verify: (req, res, buf, encoding) => {
-    const signature = req.header('x-adobe-signature')
-    if (signature) {
-      const hmac = crypto.createHmac('sha256', process.env.CLIENT_SECRET)
-      hmac.update(buf)
-      const digest = hmac.digest('base64')
-
-      if (signature !== digest) {
-        throw new Error('x-adobe-signature HMAC check failed')
-      }
-    } else if (!process.env.DEBUG && req.method === 'POST') {
-      throw new Error('x-adobe-signature required')
-    }
-  }
-}))
+app.use(bodyParser.json())
 
 app.get('/webhook', (req, res) => {
   if (req.query['challenge']) {
+    res.set('Content-Type', 'text/plain')
     res.send(req.query['challenge'])
   } else {
     console.log('No challenge')
     res.status(400)
+    res.end()
   }
 })
 
 app.post('/webhook', (req, res) => {
-  res.writeHead(200, { 'Content-Type': 'application/text' })
-  res.end('pong')
+  if (process.env.CLIENT_ID !== req.body.recipient_client_id) {
+    console.warn(`Unexpected client id. Was expecting ${process.env.CLIENT_ID} and received ${req.body.recipient_client_id}`)
+    res.status(400)
+    res.end()
+    return
+  }
+  res.set('Content-Type', 'text/plain')
+  res.send('pong')
 
   const STARTED = 'https://ns.adobe.com/experience/cloudmanager/event/started'
   const EXECUTION = 'https://ns.adobe.com/experience/cloudmanager/pipeline-execution'

@@ -1,40 +1,22 @@
-const jsrsasign = require('jsrsasign')
-const fetch = require('node-fetch')
 
-const { URLSearchParams } = require('url')
+const auth = require('@adobe/jwt-auth')
+const fs = require('fs')
+const fetch = require('node-fetch')
 
 require('dotenv').config()
 
 async function getAccessToken () {
-  const EXPIRATION = 60 * 60 // 1 hour
-
-  const header = {
-    'alg': 'RS256',
-    'typ': 'JWT'
+  const config = {
+    clientId: process.env.CLIENT_ID,
+    technicalAccountId: process.env.TECHNICAL_ACCOUNT_ID,
+    orgId: process.env.ORGANIZATION_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    metaScopes: [ 'ent_cloudmgr_sdk' ]
   }
+  config.privateKey = fs.readFileSync('.data/private.key')
 
-  const payload = {
-    'exp': Math.round(new Date().getTime() / 1000) + EXPIRATION,
-    'iss': process.env.ORGANIZATION_ID,
-    'sub': process.env.TECHNICAL_ACCOUNT_ID,
-    'aud': `https://ims-na1.adobelogin.com/c/${process.env.API_KEY}`,
-    'https://ims-na1.adobelogin.com/s/ent_cloudmgr_sdk': true
-  }
-
-  const jwtToken = jsrsasign.jws.JWS.sign('RS256', JSON.stringify(header), JSON.stringify(payload), process.env.PRIVATE_KEY)
-
-  const response = await fetch('https://ims-na1.adobelogin.com/ims/exchange/jwt', {
-    method: 'POST',
-    body: new URLSearchParams({
-      client_id: process.env.API_KEY,
-      client_secret: process.env.CLIENT_SECRET,
-      jwt_token: jwtToken
-    })
-  })
-
-  const json = await response.json()
-
-  return json['access_token']
+  const { access_token } = await auth(config)
+  return access_token  
 }
 
 async function makeApiCall (accessToken, url, method) {
@@ -42,7 +24,7 @@ async function makeApiCall (accessToken, url, method) {
     'method': method,
     'headers': {
       'x-gw-ims-org-id': process.env.ORGANIZATION_ID,
-      'x-api-key': process.env.API_KEY,
+      'x-api-key': process.env.CLIENT_ID,
       'Authorization': `Bearer ${accessToken}`
     }
   })

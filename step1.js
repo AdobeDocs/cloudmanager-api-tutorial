@@ -9,17 +9,19 @@ app.use(bodyParser.json())
 
 app.get('/webhook', (req, res) => {
   if (req.query['challenge']) {
+    res.set('Content-Type', 'text/plain')
     res.send(req.query['challenge'])
   } else {
     console.log('No challenge')
     res.status(400)
+    res.end()
   }
 })
 
 app.post('/webhook', (req, res) => {
   console.log(req.body)
-  res.writeHead(200, { 'Content-Type': 'application/text' })
-  res.end('pong')
+  res.set('Content-Type', 'text/plain')
+  res.send('pong')
 })
 
 const listener = app.listen(process.env.PORT, () => {
