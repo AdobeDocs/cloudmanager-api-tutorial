@@ -1,6 +1,6 @@
 # Cloud Manager API Tutorial
 
-This repository contains the completed tutorial for the Adobe Cloud Manager API. It accompanies the [documentation](https://www.adobe.io/apis/experiencecloud/cloud-manager/docs.html).
+This repository contains the completed tutorial for the Adobe Cloud Manager API. It accompanies the [documentation](https://developer.adobe.com/experience-cloud/cloud-manager/).
 
 ## Goal
 
