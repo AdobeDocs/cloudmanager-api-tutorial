@@ -1,25 +1,47 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const auth = require('@adobe/jwt-auth')
-const fs = require('fs')
 
 require('dotenv').config()
 
 const app = express()
 
 async function getAccessToken () {
-  const config = {
-    clientId: process.env.CLIENT_ID,
-    technicalAccountId: process.env.TECHNICAL_ACCOUNT_ID,
-    orgId: process.env.ORGANIZATION_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    metaScopes: [ 'ent_cloudmgr_sdk' ]
-  }
-  config.privateKey = fs.readFileSync('.data/private.key')
+  const form = new FormData();
+  form.append('client_id', process.env.CLIENT_ID);
+  form.append('client_secret', process.env.CLIENT_SECRET);
+  form.append('grant_type', process.env.GRANT_TYPE);
+  form.append('scope', process.env.SCOPES);
 
-  const { access_token } = await auth(config)
-  return access_token  
+  const response = await fetch('https://ims-na1.adobelogin.com/ims/token/v3', {
+    'method': 'POST',
+    'headers': { 'Content-Type': 'application/x-www-form-urlencoded' },
+    'body': form
+  })
+  if (!response.ok) {
+    throw new Error('Failed to get access token');
+  }
+  const responseData = await response.json();
+  return responseData.access_token;
 }
+
+// Getting JWT access token
+/*
+ * const fs = require('fs')
+ * const fetch = require('node-fetch')
+ * async function getAccessToken () {
+ *   const config = {
+ *     clientId: process.env.CLIENT_ID,
+ *     technicalAccountId: process.env.TECHNICAL_ACCOUNT_ID,
+ *     orgId: process.env.ORGANIZATION_ID,
+ *     clientSecret: process.env.CLIENT_SECRET,
+ *     metaScopes: [ 'ent_cloudmgr_sdk' ]
+ *   }
+ *   config.privateKey = fs.readFileSync('.data/private.key')
+ *
+ *   const { access_token } = await auth(config)
+ *   return access_token
+ * }
+ */
 
 app.use(bodyParser.json())
 
